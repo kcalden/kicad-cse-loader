@@ -4,7 +4,7 @@ use std::fs::{canonicalize, DirBuilder, File, read_to_string, DirEntry};
 use regex::Regex;
 use std::collections::HashMap;
 use zip::ZipArchive;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::time::Instant;
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -80,7 +80,7 @@ fn main() -> std::io::Result<()> {
     };
     
     // Pull defs from main library
-    let mut lib_defs = get_lib_defs(&lib_file_contents);
+    let mut main_lib_defs = get_lib_defs(&lib_file_contents);
 
     // Attempt to read the dcm file
     let dcm_file_contents = match read_to_string(&dcm_file_path) {
@@ -88,9 +88,28 @@ fn main() -> std::io::Result<()> {
         Err(_) => String::from(DCM_HEADER),
     };
 
+    let mut main_dcm_defs = get_dcm_defs(&dcm_file_contents);
+
     // Grab all data for the new components
     let new_components = get_component_archives(&config.download_folder);
 
+    // Push component data
+    for (component_name,component) in new_components {
+        // Write lib definition
+        main_lib_defs.insert(component_name.clone(), component.lib_def);
+        // Write dcm definition
+        main_dcm_defs.insert(component_name.clone(), component.dcm_def);
+
+        // Write model file
+        if let Some(model_file) = component.model_file {
+            let mut m = File::create(format!("{}/{}.stp", &shapes_folder, &component_name))?;
+            m.write(model_file.as_bytes());
+        }
+
+        // Write footprint file
+        let mut f = File::create(format!("{}/{}.kicad_mod", &pretty_folder, &component.footprint_name))?;
+        f.write(component.footprint_file.as_bytes());
+    }
     Ok(())
 }
 
@@ -107,7 +126,7 @@ fn get_lib_defs(contents: &str) -> HashMap<String,String> {
     lib_defs
 }
 
-fn get_doc_defs(contents: &str) -> HashMap<String,String> {
+fn get_dcm_defs(contents: &str) -> HashMap<String,String> {
     lazy_static! {
         static ref LIB_DEF_RE: Regex = Regex::new(r"(?s)(?P<definition>\$CMP\s+(?P<name>.*?)\s+.*?\$ENDCMP)+").unwrap();
     }
@@ -170,7 +189,7 @@ fn get_component_archives(download_folder: &str) -> HashMap<String, Component>{
             let mut comp_dcm_file = component_archive.by_name(format!("{}/KiCad/{}.dcm",component_name,component_name).as_str()).unwrap();
             let mut dcm_file_buf = String::new();
             comp_dcm_file.read_to_string(&mut dcm_file_buf);
-            let dcm_def = get_doc_defs(&dcm_file_buf);
+            let dcm_def = get_dcm_defs(&dcm_file_buf);
             let dcm_def = dcm_def.get(&component_name).unwrap();
             component.dcm_def = dcm_def.clone();
         }
