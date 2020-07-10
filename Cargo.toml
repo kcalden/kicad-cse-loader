@@ -1,5 +1,5 @@
 [package]
-name = "kicad-library-loader-linux"
+name = "kicad-cse-libloader"
 version = "0.1.0"
 authors = ["Karl Calden <kcalden323@gmail.com>"]
 edition = "2018"

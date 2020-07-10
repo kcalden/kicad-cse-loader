@@ -139,7 +139,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "kicad-library-loader-linux"
+name = "kicad-cse-libloader"
 version = "0.1.0"
 dependencies = [
  "lazy_static",
