@@ -1,6 +1,6 @@
 # KiCAD CSE LibLoader
 
-This is a program written in rust that takes a set of components downloaded from Component Search Engine and merges them with some main library. The main library name and location as well as the download folder is set in the config file.
+Takes a set of components downloaded from Component Search Engine and merges them with some main library. The main library name and location as well as the download folder is set in the config file.
 
 ## Using the program
 
