@@ -90,11 +90,13 @@ fn main() -> std::io::Result<()> {
 
     let mut main_dcm_defs = get_dcm_defs(&dcm_file_contents);
 
+    let stopwatch = Instant::now();
     // Grab all data for the new components and merge them with ours
     let new_components = get_component_archives(&config.download_folder);
 
     // Push component data
     for (component_name,component) in new_components {
+        println!("{} -> {}", component_name, config.main_lib_name);
         // Write lib definition
         main_lib_defs.insert(component_name.clone(), component.lib_def);
         // Write dcm definition
@@ -140,7 +142,7 @@ fn main() -> std::io::Result<()> {
     let mut dcm_file = File::create(dcm_file_path)?;
     dcm_file.write(new_dcm_file.as_bytes());
 
-    println!("{}",new_dcm_file);
+    println!("Merged in {} ms",stopwatch.elapsed().as_millis());
     Ok(())
 }
 
