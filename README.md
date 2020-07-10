@@ -11,3 +11,6 @@ Take the executable from target/release and place it anywhere you want then copy
 Modify loader.toml to your liking.
 
 Now you can run the executable whenever you want to update your main lobby.
+
+## Multiple libraries
+You can place multiple executables in different folders with their own loader.toml files and run them to update different libraries.
