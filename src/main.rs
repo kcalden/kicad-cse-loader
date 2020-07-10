@@ -90,7 +90,7 @@ fn main() -> std::io::Result<()> {
 
     let mut main_dcm_defs = get_dcm_defs(&dcm_file_contents);
 
-    // Grab all data for the new components
+    // Grab all data for the new components and merge them with ours
     let new_components = get_component_archives(&config.download_folder);
 
     // Push component data
@@ -110,6 +110,37 @@ fn main() -> std::io::Result<()> {
         let mut f = File::create(format!("{}/{}.kicad_mod", &pretty_folder, &component.footprint_name))?;
         f.write(component.footprint_file.as_bytes());
     }
+
+    // Create lib file
+    let mut new_lib_file = String::new();
+    new_lib_file.push_str(LIB_HEADER);
+    new_lib_file.push_str("\n#encoding utf-8\n");
+    new_lib_file.push_str("#\n");
+    for (component_name, lib_def) in main_lib_defs {
+        new_lib_file.push_str(format!("# {}\n", component_name).as_str());
+        new_lib_file.push_str("#\n");
+        new_lib_file.push_str(&lib_def);
+        new_lib_file.push_str("\n#\n");
+    }
+    new_lib_file.push_str("#End Library");
+
+    let mut lib_file = File::create(lib_file_path)?;
+    lib_file.write(new_lib_file.as_bytes());
+
+    let mut new_dcm_file = String::new();
+    new_dcm_file.push_str(DCM_HEADER);
+    new_lib_file.push_str("\n#\n");
+    for (component_name, lib_def) in main_dcm_defs {
+        // new_dcm_file.push_str("#\n");
+        new_dcm_file.push_str(&lib_def);
+        new_dcm_file.push_str("\n#\n");
+    }
+    new_dcm_file.push_str("#End Doc Library");
+
+    let mut dcm_file = File::create(dcm_file_path)?;
+    dcm_file.write(new_dcm_file.as_bytes());
+
+    println!("{}",new_dcm_file);
     Ok(())
 }
 
